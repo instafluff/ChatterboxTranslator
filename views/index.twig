@@ -1,0 +1,58 @@
+{% extends 'layout.twig' %}
+
+{% block body %}
+	<h1>{{ title }}</h1>
+	<strong><a href="http://translate.yandex.com/" target="_blank">Powered by Yandex.Translate</a></strong>
+	<pre id="chatterbox">
+	</pre>
+	<script>
+		var client = null;
+		var language = "en";
+		var chatmessages = [];
+
+		$( document ).ready(function() {
+			var options = {
+				options: {
+					debug: false
+				},
+				connection: {
+					reconnect: true,
+				},
+				identity: {
+					username: "{{ username }}",
+				    password: "{{ oauth }}"
+				},
+				channels: ["#{{ username }}"]
+			};
+
+			client = new tmi.client(options);
+
+			// Connect the client to the server..
+			client.connect();
+
+			client.on("chat", function (channel, userstate, message, self) {
+				if( message.startsWith("!lang ") ) {
+					language = message.split(" ")[ 1 ].trim();
+					console.log("Language was set to: " + language);
+					return;
+				}
+
+				$.ajax("https://translate.yandex.net/api/v1.5/tr.json/translate?key={{ yandex }}&lang=" + language + "&text=" +
+					encodeURI( message ) ).done(function(resp) {
+						console.log( resp );
+						if( resp && resp[ "lang" ] && !resp[ "lang" ].startsWith( language ) ) {
+							let text = resp[ "text" ] || "";
+							client.say( "#{{ username }}", "/me " + userstate["display-name"] + " said, \"" + text +"\"" );
+							chatmessages.push(text);
+							if( chatmessages.length > 10 ) {
+								chatmessages = chatmessages.slice( chatmessages.length - 10 );
+							}
+							$("#chatterbox").text( chatmessages.join("\n") );
+						}
+					});
+				// $("#chatterbox").text( userstate["display-name"] + ": " + message );
+				console.log( userstate["display-name"] + ": " + message );
+			});
+		});
+	</script>
+{% endblock %}
