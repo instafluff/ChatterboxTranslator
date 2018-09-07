@@ -32,6 +32,7 @@
 
 			client.on("chat", function (channel, userstate, message, self) {
 				if( message.startsWith("!lang ") ) {
+					// TODO: Restrict this to moderators
 					language = message.split(" ")[ 1 ].trim();
 					console.log("Language was set to: " + language);
 					return;
@@ -42,6 +43,7 @@
 						console.log( resp );
 						if( resp && resp[ "lang" ] && !resp[ "lang" ].startsWith( language ) ) {
 							let text = resp[ "text" ] || "";
+							if (text == message) return; // No need to translate back to itself
 							client.say( "#{{ username }}", "/me " + userstate["display-name"] + " said, \"" + text +"\"" );
 							chatmessages.push(text);
 							if( chatmessages.length > 10 ) {
