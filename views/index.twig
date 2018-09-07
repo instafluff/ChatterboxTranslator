@@ -32,6 +32,7 @@
 
 			client.on("chat", function (channel, userstate, message, self) {
 				if( message.startsWith("!lang ") ) {
+					// TODO: Restrict this to moderators
 					language = message.split(" ")[ 1 ].trim();
 					console.log("Language was set to: " + language);
 					return;
